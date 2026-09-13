@@ -1,0 +1,5 @@
+# The calculator itself runs on the Python standard library only.
+# The two packages below are needed for the chart and for the test suite.
+
+matplotlib>=3.7      # only for comparison.plot_break_even
+pytest>=7.4          # only for running the test suite
