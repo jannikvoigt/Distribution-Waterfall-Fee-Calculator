@@ -61,6 +61,14 @@ def parse_args() -> argparse.Namespace:
 
     parser.add_argument("--compare", action="store_true",
                         help="compare the terms above against the comparison class")
+    parser.add_argument("--sweep", action="store_true",
+                        help="evaluate both classes across a range of scenarios")
+    parser.add_argument("--sweep-from", type=float, default=1.0,
+                        help="lower end of the gross TVPI range")
+    parser.add_argument("--sweep-to", type=float, default=3.0,
+                        help="upper end of the gross TVPI range")
+    parser.add_argument("--sweep-step", type=float, default=0.05,
+                        help="step size of the gross TVPI range")
     return parser.parse_args()
 
 
@@ -184,6 +192,9 @@ def print_comparison(args: argparse.Namespace) -> None:
 
 def main() -> None:
     args = parse_args()
+    if args.sweep:
+        print_sweep(args)
+        return
     if args.compare:
         print_comparison(args)
         return
@@ -191,6 +202,40 @@ def main() -> None:
     terms = terms_from_args(args)
     proceeds = args.proceeds if args.proceeds is not None else proceeds_from_tvpi(terms, args.tvpi)
     print_summary(fund_summary(terms, proceeds))
+
+
+
+
+def print_sweep(args: argparse.Namespace) -> None:
+    """Show both classes across a range of scenarios and locate the flip."""
+    from comparison import find_break_even, sweep
+
+    a_terms = terms_from_args(args)
+    b_terms = terms_from_args(args, {
+        "carry": args.carry_b,
+        "mgmt_fee_investment": args.fee_investment_b,
+        "mgmt_fee_post": args.fee_post_b,
+    })
+    label_a = f"{a_terms.carry:.0%} carry"
+    label_b = f"{b_terms.carry:.0%} carry"
+
+    print("=" * WIDTH)
+    print(f"  SCENARIO SWEEP: {label_a} versus {label_b}")
+    print("-" * WIDTH)
+    print(f"  {'TVPI':<8}{'Cost ' + label_a:>16}{'Cost ' + label_b:>16}"
+          f"{'Net ' + label_a:>16}{'Net ' + label_b:>16}  better")
+    for row in sweep(a_terms, b_terms, args.sweep_from, args.sweep_to, args.sweep_step):
+        better = label_a if row["advantage_net"] > 0 else label_b
+        print(f"  {row['gross_tvpi']:<8.2f}{row['cost_a']:>16,.0f}{row['cost_b']:>16,.0f}"
+              f"{row['net_a']:>16,.0f}{row['net_b']:>16,.0f}  {better}")
+
+    print("-" * WIDTH)
+    by_net = find_break_even(a_terms, b_terms, "net")
+    by_cost = find_break_even(a_terms, b_terms, "cost")
+    for name, value in (("net proceeds to the LP", by_net), ("total cost", by_cost)):
+        text = f"{value:.4f}x" if value is not None else "no flip in range"
+        print(f"  Break-even by {name:<24}{text:>12}")
+    print("=" * WIDTH)
 
 
 if __name__ == "__main__":
