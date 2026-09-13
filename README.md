@@ -6,8 +6,7 @@ two share classes of the same fund.
 
 **The question it answers.** The same fund is often offered in several share classes:
 one with a low management fee and a high carried interest, one with a high fee and a
-low carry. The fee is paid regardless of performance, the carry only out of profits —
-so which class is cheaper for an investor depends on how the fund performs. This tool
+low carry. The fee is paid regardless of performance, the carry only out of profits. Which class is cheaper for an investor therefore depends on how the fund performs. This tool
 computes both classes across a range of scenarios and locates the point at which the
 ranking flips.
 
@@ -117,7 +116,7 @@ ranking flips at a gross TVPI of **2.00x** measured by net proceeds and at **1.9
 measured by total cost.
 
 The break-even is found numerically by bisection rather than from a closed formula,
-because in that range the catch-up is not yet fully paid — the carried interest does
+because in that range the catch-up is not yet fully paid. The carried interest does
 not equal the agreed share of the profit there, so a simplified formula would
 understate the point.
 
